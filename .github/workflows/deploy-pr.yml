@@ -15,7 +15,12 @@ jobs:
     steps:
       - run: echo "It works! TESTING_SERVER is ${{env.TESTING_SERVER}}"
 
-      # - name: save branch name
-      #   id: save_branch_name
-      #   run: |
-      #    echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
+      - name: save branch name
+        id: save_branch_name
+        run: |
+         echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
+
+      - name: read branch name
+        id: read_branch_name
+        run: |
+         echo "GIT_BRANCH is ${{env.GIT_BRANCH}}"
