@@ -1,0 +1,21 @@
+name: Deploy pull requests
+
+on:
+  # start with manual runs only
+  workflow_dispatch:
+  # issue_comment:
+  #   types: [created, updated]
+
+env:
+  TESTING_SERVER: testing.test.com
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "It works! TESTING_SERVER is ${{env.TESTING_SERVER}}"
+
+      # - name: save branch name
+      #   id: save_branch_name
+      #   run: |
+      #    echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
