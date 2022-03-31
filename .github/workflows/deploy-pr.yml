@@ -10,10 +10,26 @@ env:
   TESTING_SERVER: testing.test.com
 
 jobs:
+
   say-hello:
     runs-on: ubuntu-latest
     steps:
       - run: echo "It works! TESTING_SERVER is ${{env.TESTING_SERVER}}"
+
+  deploy:
+    runs-on: ubuntu-latest
+    # needs: deploy-check
+    # if: needs.deploy-check.outputs.triggered == 'true'
+    steps:
+      - name: get pull request ref
+        id: get_pull_request_ref
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls/:issue_id
+          repository: ${{ github.repository }}
+          issue_id: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: save branch name
         id: save_branch_name
