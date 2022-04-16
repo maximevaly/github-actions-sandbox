@@ -1,10 +1,10 @@
 name: Deploy pull requests
 
 on:
-  # start with manual runs only
+  # push:
   workflow_dispatch:
-  # issue_comment:
-  #   types: [created, updated]
+  issue_comment:
+    types: [created, updated]
 
 env:
   TESTING_SERVER: testing.test.com
