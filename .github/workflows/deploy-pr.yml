@@ -41,7 +41,7 @@ jobs:
       # Find the PR associated with this push, if there is one.
       # Make it available in ${{ steps.findPr.outputs.pr }}
       - name: find current pull request
-        uses: jwalton/gh-find-current-pr@v1
+        uses: jwalton/gh-find-current-pr@v1.3.0
         id: findPr
         with:
           # Can be "open", "closed", or "all".  Defaults to "open".
@@ -50,7 +50,10 @@ jobs:
       - name: save PR to environment
         id: save_pr
         #if: success() && steps.findPr.outputs.number
-        run: echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV; echo "steps.findPr.outputs.pr=${{ steps.findPr.outputs.pr }}; PR=${{ env.PR }}"
+        run: |
+          echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV
+          echo "steps.findPr.outputs.pr=${{ steps.findPr.outputs.pr }}; PR=${{ env.PR }}"
+          echo "github.event.number=${{ github.event.number }}"
 
       - name: get pull request ref
         id: get_pull_request_ref
