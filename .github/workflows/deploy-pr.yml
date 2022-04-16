@@ -46,14 +46,23 @@ jobs:
         with:
           # Can be "open", "closed", or "all".  Defaults to "open".
           state: open
-          
-      - name: save PR to environment
+
+      ## in case of a push event    
+      # - name: save PR number to environment
+      #   id: save_pr
+      #   #if: success() && steps.findPr.outputs.number
+      #   run: |
+      #     echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV
+      #     echo "steps.findPr.outputs.pr=${{ steps.findPr.outputs.pr }}; PR=${{ env.PR }}"
+      #     echo "github.event.number=${{ github.event.number }}"
+
+      ## universal https://github.com/actions/checkout/issues/58#issuecomment-614041550
+      - name: save PR number to environment
         id: save_pr
-        #if: success() && steps.findPr.outputs.number
         run: |
-          echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV
-          echo "steps.findPr.outputs.pr=${{ steps.findPr.outputs.pr }}; PR=${{ env.PR }}"
-          echo "github.event.number=${{ github.event.number }}"
+          PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          echo "PR=$PR_NUMBER" >> $GITHUB_ENV
+          echo "PR_NUMBER=$PR_NUMBER; PR=${{ env.PR }}"
 
       - name: get pull request ref
         id: get_pull_request_ref
