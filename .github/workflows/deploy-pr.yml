@@ -2,7 +2,6 @@ name: Deploy pull requests
 
 on:
   # push:
-  workflow_dispatch:
   issue_comment:
     types: [created, updated]
 
@@ -18,6 +17,7 @@ jobs:
 
   deploy-check:
     runs-on: ubuntu-latest
+    # if: github.event_name != 'push'
     steps:
       - name: acknowledge deployment request to commenter
         id: check
@@ -33,36 +33,32 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: deploy-check
+    # if: github.event_name == 'push' || 
     if: needs.deploy-check.outputs.triggered == 'true'
     steps:
       
       - uses: actions/checkout@v1
       
-      # Find the PR associated with this push, if there is one.
-      # Make it available in ${{ steps.findPr.outputs.pr }}
-      - name: find current pull request
-        uses: jwalton/gh-find-current-pr@v1.3.0
-        id: findPr
-        with:
-          # Can be "open", "closed", or "all".  Defaults to "open".
-          state: open
-
-      ## in case of a push event    
-      # - name: save PR number to environment
-      #   id: save_pr
-      #   #if: success() && steps.findPr.outputs.number
-      #   run: |
-      #     echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV
-      #     echo "steps.findPr.outputs.pr=${{ steps.findPr.outputs.pr }}; PR=${{ env.PR }}"
-      #     echo "github.event.number=${{ github.event.number }}"
+      # # Find the PR associated with this push, if there is one.
+      # # Make it available in ${{ steps.findPr.outputs.pr }}
+      # - name: find current pull request
+      #   uses: jwalton/gh-find-current-pr@v1.3.0
+      #   id: findPr
+      #   with:
+      #     # Can be "open", "closed", or "all".  Defaults to "open".
+      #     state: open
 
       ## universal https://github.com/actions/checkout/issues/58#issuecomment-614041550
       - name: save PR number to environment
         id: save_pr
         run: |
-          PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          # PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH") # null
+          # PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }') # "main"
+          PR_NUMBER=${{github.event.issue.number}}
           echo "PR=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_NUMBER=$PR_NUMBER; PR=${{ env.PR }}"
+          echo "github.event.issue.number=${{github.event.issue.number}}" # works for new comments event
+          echo "github.event.number=${{github.event.number}}"
 
       - name: get pull request ref
         id: get_pull_request_ref
@@ -78,9 +74,9 @@ jobs:
         id: save_branch_name
         run: echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
 
-      - name: debug log 2
-        run: |
-         echo "steps.get_pull_request_ref.outputs.data='${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}'"
+      # - name: debug log 2
+      #   run: |
+      #    echo "steps.get_pull_request_ref.outputs.data='${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}'"
 
       - name: create deployment
         id: create_deployment
@@ -114,24 +110,15 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      # - name: deploy the pull request
-      #   run: |
-      #     # deployment logic goes here
-      #     sleep 10
-      #     # instead we randomly succeed or fail the deployment
-      #     exit $(( $RANDOM % 10 >= 5 ))
-
       - name: deploy the pull request
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.TESTING_SERVER }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.PASSWORD }} 
-          script: |
-            whoami
-            export PR_DIR=pr/$PR
-            echo "Here we should ssh to ${{env.TESTING_SERVER}}"
-            echo "and pull $GIT_BRANCH to $PR_DIR, then launch a build"
+        run: |
+          whoami
+          export PR_DIR=pr/$PR
+          echo "Here we should ssh to ${{env.TESTING_SERVER}} using appleboy/ssh-action@master"
+          echo "and pull $GIT_BRANCH to $PR_DIR, then launch a build"
+          sleep 10
+          # randomly succeed or fail the deployment
+          exit $(( $RANDOM % 10 >= 5 ))
 
       - name: set deployment status to success
         id: successful_deployment
@@ -147,6 +134,15 @@ jobs:
           state: success
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      
+      # Add new emoji as positive feedback when the deployment worked
+      - name: add positive reaction
+        uses: dkershner6/reaction-action@v1
+        if: success()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commentId: ${{ github.event.comment.id }}
+          reaction: '+1'
 
       - name: set deployment status to failure
         id: failed_deployment
@@ -163,3 +159,12 @@ jobs:
           state: failure
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      # Add new emoji as negative feedback when the deployment failed
+      - name: add negative reaction
+        uses: dkershner6/reaction-action@v1
+        if: failure()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commentId: ${{ github.event.comment.id }}
+          reaction: '-1'
