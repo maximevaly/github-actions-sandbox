@@ -50,7 +50,7 @@ jobs:
       - name: save PR to environment]
         id: save_pr
         # run: echo "Your PR is ${PR}"
-        run: echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV
+        run: echo "PR=${{ steps.findPr.outputs.pr }}" >> $GITHUB_ENV; echo "steps.findPr.outputs.pr=${{ steps.findPr.outputs.pr }}; PR=${{ env.PR }}"
         if: success() && steps.findPr.outputs.number
 
       - name: get pull request ref
