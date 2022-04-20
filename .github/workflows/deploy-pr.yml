@@ -70,16 +70,17 @@ jobs:
 #         env:
 #           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: get branch name
-        uses: mdecoleman/pr-branch-name@1.2.0
-        id: get_branch_name
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+#       - name: get branch name
+#         uses: mdecoleman/pr-branch-name@1.2.0
+#         id: get_branch_name
+#         with:
+#           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: save branch name to environment
         id: save_branch_name
 #         run: echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
-        run: echo "GIT_BRANCH=${{ steps.get_branch_name.outputs.branch }}" >> $GITHUB_ENV
+#         run: echo "GIT_BRANCH=${{ steps.get_branch_name.outputs.branch }}" >> $GITHUB_ENV
+        run: echo "GIT_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
 
       - name: create deployment
         id: create_deployment
@@ -87,7 +88,8 @@ jobs:
         with:
           route: POST /repos/:repository/deployments
           repository: ${{ github.repository }}
-          ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
+#           ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
+          ref: ${{ github.ref }}
           environment: dev
           auto_merge: false
           # Without this, it fails with 
