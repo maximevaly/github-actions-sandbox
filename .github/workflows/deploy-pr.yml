@@ -79,7 +79,7 @@ jobs:
       - name: save branch name to environment
         id: save_branch_name
 #         run: echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
-        run: echo "GIT_BRANCH=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
+        run: echo "GIT_BRANCH=${{ steps.get_branch_name.outputs.branch }}" >> $GITHUB_ENV
 
       - name: create deployment
         id: create_deployment
