@@ -60,23 +60,26 @@ jobs:
           echo "github.event.issue.number=${{github.event.issue.number}}" # works for new comments event
           echo "github.event.number=${{github.event.number}}"
 
-      - name: get pull request ref
-        id: get_pull_request_ref
-        uses: octokit/request-action@v2.x
+#       - name: get pull request ref
+#         id: get_pull_request_ref
+#         uses: octokit/request-action@v2.x
+#         with:
+#           route: GET /repos/:repository/pulls/:issue_id
+#           repository: ${{ github.repository }}
+#           issue_id: ${{ env.PR }}
+#         env:
+#           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: get branch name
+        uses: mdecoleman/pr-branch-name@1.2.0
+        id: get_branch_name
         with:
-          route: GET /repos/:repository/pulls/:issue_id
-          repository: ${{ github.repository }}
-          issue_id: ${{ env.PR }}
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: save branch name to environment
         id: save_branch_name
-        run: echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
-
-      # - name: debug log 2
-      #   run: |
-      #    echo "steps.get_pull_request_ref.outputs.data='${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}'"
+#         run: echo "GIT_BRANCH=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_ENV
+        run: echo "GIT_BRANCH=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
 
       - name: create deployment
         id: create_deployment
