@@ -94,8 +94,8 @@ jobs:
 #         run: echo "GIT_BRANCH=${{ steps.get_branch_name.outputs.branch }}" >> $GITHUB_ENV
 #         run: echo "GIT_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
         run: |
-          echo "GIT_BRANCH=${{ steps.save_branch_name.outputs.current_branch }}" >> $GITHUB_ENV
-          echo "steps.save_branch_name.outputs.current_branch=${{ steps.save_branch_name.outputs.current_branch }}"
+          echo "GIT_BRANCH=${{ steps.get_branch_name.outputs.current_branch }}" >> $GITHUB_ENV
+          echo "steps.get_branch_name.outputs.current_branch=${{ steps.save_branch_name.outputs.current_branch }}"
 
       - name: create deployment
         id: create_deployment
